@@ -4,6 +4,7 @@ const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const pageDisplay = document.getElementById('pageNumber');
 const searchInput = document.getElementById('searchInput');
+const btnSearch = document.getElementById('btnSearch');
 
 let allUsers = []; 
 let currentPage = 0;
@@ -48,6 +49,34 @@ function renderCards(usersList) {
     });
 }
 
+async function performGlobalSearch() {
+    const query = searchInput.value.trim();
+    
+    if (query === "") {
+        currentPage = 0;
+        fetchUsers(currentPage);
+        return;
+    }
+
+    const url = `https://dummyjson.com/users/search?q=${query}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        allUsers = data.users; 
+        
+        btnNext.disabled = true;
+        btnPrev.disabled = true;
+        pageNumber.innerText = `Results found: ${allUsers.length}`;
+
+        renderCards(allUsers);
+    } catch (error) {
+        console.error("Error en búsqueda global:", error);
+    }
+}
+
+
 btnNext.addEventListener('click', () => {
     currentPage++;
     fetchUsers(currentPage);
@@ -68,7 +97,7 @@ btnAZ.addEventListener('click', () => {
 
 searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
-
+    
     
     const filteredUsers = allUsers.filter(user => {
         const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
@@ -77,9 +106,11 @@ searchInput.addEventListener('input', (e) => {
         
         return fullName.includes(searchTerm) || username.includes(searchTerm);
     });
-
+    
     
     renderCards(filteredUsers);
 });
+
+btnSearch.addEventListener('click', performGlobalSearch);
 
 fetchUsers(currentPage);
